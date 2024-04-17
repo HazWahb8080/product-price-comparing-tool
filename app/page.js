@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 // #9FFF45 yellow
@@ -11,16 +12,31 @@ export default function Home() {
   const [productName, setProductName] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLaoding] = useState(false);
+  const [averagePrice, setAveragePrice] = useState();
   const [error, setError] = useState("");
   const submitForm = async () => {
     setLaoding(true);
     if (loading) return;
     const response = await axios.post("/api/scrape", { productName });
-    setResults(response.data);
-    response.data.includes("error")
-      ? setError(response.data)
-      : setLaoding(false);
+    const refinedData = response.data;
+    setResults(refinedData);
+    setLaoding(false);
   };
+  useEffect(() => {
+    if (results.length == 0) return;
+    // Calculate average, lowest, and highest prices
+    let totalPrice = 0;
+    results
+      .filter((item) => item !== null)
+      .forEach((item) => {
+        if (item.price !== null) {
+          totalPrice += item.price;
+        }
+      });
+
+    setAveragePrice(results.length > 0 ? totalPrice / results.length : 0);
+  }, [results]);
+
   if (loading) {
     return (
       <div
@@ -64,19 +80,34 @@ export default function Home() {
       </form>
 
       {results.length > 0 && (
-        <div
-          className="w-full place-items-center gap-6 mt-12 
-        max-h-[50vh] overflow-y-scroll bg-[#131633] text-[#9FFF45] py-10 px-6 "
-        >
-          {results.map((item) => (
-            <div key={item.title} className="border-b border-[#9FFF45] py-4">
-              <p>{item.title}</p>
-              <p>{item.price}</p>
-              <a href={item.link} className="cursor-pointer">
-                check
-              </a>
-            </div>
-          ))}
+        <div className="grid grid-cols-3 gap-x-4 mt-12">
+          <div
+            className="col-span-2 w-full place-items-center gap-6 mt-12 
+        max-h-[70vh] overflow-y-scroll bg-white text-black 
+        font-medium py-10 px-6 border border-black/10 "
+          >
+            {results
+              .filter((item) => item !== null)
+              .map((item) => (
+                <div key={item.title} className="border-b border-black py-10 ">
+                  <img
+                    src={item.imageSrc}
+                    className="h-[300px] w-[300px] object-cover object-center mb-4"
+                    alt={item.title + "-image"}
+                  />
+                  <p>{item.title}</p>
+                  <p className="font-bold">${item.price}</p>
+                  <a href={item.link} className="cursor-pointer">
+                    check product →
+                  </a>
+                </div>
+              ))}
+          </div>
+          <div className="col-span-1 h-full items-center justify-center flex">
+            <h3>
+              Average Price is <br /> <b>${averagePrice.toFixed(2)}</b>
+            </h3>
+          </div>
         </div>
       )}
       {error && <div>{error}</div>}

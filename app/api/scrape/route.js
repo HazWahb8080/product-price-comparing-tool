@@ -14,23 +14,26 @@ export async function POST(request) {
   const { productName } = await request.json();
 
   const browserWSEndpoint =
-    "https://production-sfo.browserless.io?token=GOES-HERE";
+    "wss://production-sfo.browserless.io?token=750fcb31-ff6d-45ac-8e7b-4527046ac6dc";
+  const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
   const getBrowser = async () =>
-    process.env.NODE_ENV === "production"
+    IS_PRODUCTION
       ? puppeteer.connect({ browserWSEndpoint })
-      : puppeteer.launch();
+      : puppeteer.launch({ headless: true });
 
   try {
     const browser = await getBrowser();
     const page = await browser.newPage();
-    await page.goto("https://www.amazon.com");
+    await page.goto("https://www.amazon.com", {
+      waitUntil: "domcontentloaded",
+    });
 
     // Type the product name into the search input field and press Enter
     await page.waitForSelector("#twotabsearchtextbox");
     await page.type("#twotabsearchtextbox", productName);
     await page.keyboard.press("Enter");
-    await page.waitForNavigation();
+    await page.waitForNavigation({ waitUntil: "domcontentloaded" });
 
     // Extract data from the search results
     const searchResults = await page.$$eval(".s-result-item", (items) => {
@@ -38,23 +41,27 @@ export async function POST(request) {
         const titleElement = item.querySelector("h2 > a");
         const priceElement = item.querySelector(".a-price > .a-offscreen");
         const urlElement = item.querySelector("h2 > a");
+        const imageElement = item.querySelector(".s-image");
 
         // Check if elements are available before accessing their properties
         const title = titleElement
           ? titleElement.textContent.trim()
           : "Title not found";
         const price = priceElement
-          ? priceElement.textContent.trim()
-          : "Price not found";
+          ? parseFloat(priceElement.textContent.trim().replace("$", ""))
+          : null;
         const url = urlElement ? urlElement.href : "#";
+        const imageSrc = imageElement ? imageElement.src : null;
+
         if (
           title.includes() == "not found" ||
-          price.includes() == "not found" ||
-          url == "#"
+          !price ||
+          url == "#" ||
+          !imageSrc
         ) {
-          null;
+          // do nothing
         } else {
-          return { title, price, url };
+          return { title, price, url, imageSrc };
         }
       });
     });
@@ -62,6 +69,6 @@ export async function POST(request) {
     await browser.close();
     return Response.json(searchResults);
   } catch (error) {
-    return Response.json({ error: error.message });
+    return Response.json(error.message);
   }
 }
