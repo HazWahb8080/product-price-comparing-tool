@@ -1,5 +1,8 @@
 import puppeteer from "puppeteer";
 import { NextResponse } from "next/server";
+import puppeteerExtra from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import AnonymizeUAPlugin from "puppeteer-extra-plugin-anonymize-ua";
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -12,6 +15,25 @@ export async function OPTIONS(request) {
 
 export async function POST(request) {
   const { productName } = await request.json();
+  puppeteerExtra.use(StealthPlugin());
+  puppeteerExtra.use(AnonymizeUAPlugin());
+
+  const generateRandomUA = () => {
+    // Array of random user agents
+    const userAgents = [
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15",
+    ];
+    // Get a random index based on the length of the user agents array
+    const randomUAIndex = Math.floor(Math.random() * userAgents.length);
+    // Return a random user agent using the index above
+    return userAgents[randomUAIndex];
+  };
 
   const browserWSEndpoint =
     "wss://production-sfo.browserless.io?token=750fcb31-ff6d-45ac-8e7b-4527046ac6dc";
@@ -19,14 +41,19 @@ export async function POST(request) {
 
   const getBrowser = async () =>
     IS_PRODUCTION
-      ? puppeteer.connect({ browserWSEndpoint })
-      : puppeteer.launch({
-          headless: true,
+      ? puppeteerExtra.connect({ browserWSEndpoint })
+      : puppeteerExtra.launch({
+          headless: false,
         });
 
   try {
     const browser = await getBrowser();
     const page = await browser.newPage();
+    // Custom user agent
+    const customUA = generateRandomUA();
+
+    // Set custom user agent
+    await page.setUserAgent(customUA);
     await page.goto("https://www.amazon.com", {
       waitUntil: "domcontentloaded",
     });
@@ -39,7 +66,7 @@ export async function POST(request) {
 
     // Extract data from the search results
     const searchResults = await page.$$eval(".s-result-item", (items) => {
-      return items.slice(1, 11).map((item) => {
+      return items.slice(1, 20).map((item) => {
         const titleElement = item.querySelector("h2 > a");
         const priceElement = item.querySelector(".a-price > .a-offscreen");
         const urlElement = item.querySelector("h2 > a");
@@ -69,7 +96,6 @@ export async function POST(request) {
     });
 
     await browser.close();
-    console.log(searchResults);
     return Response.json(searchResults);
   } catch (error) {
     return Response.json(error.message);

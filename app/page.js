@@ -7,7 +7,7 @@ import { useRecoilState } from "recoil";
 import {
   AmazonResultsState,
   BestBuyResultsState,
-  WalmartResultsState,
+  EbayResultsState,
 } from "./atoms";
 
 // #9FFF45 yellow
@@ -15,49 +15,52 @@ import {
 // #2135E5 blueish
 const tabs = [
   { id: 0, name: "Amazon" },
-  { id: 1, name: "Walmart" },
-  { id: 2, name: "BestBuy" },
+  { id: 1, name: "Ebay" },
 ];
 
 export default function Home() {
   const [productName, setProductName] = useState("");
   const [AmazonResults, setAmazonResults] = useRecoilState(AmazonResultsState);
-  const [BestBuyResults, setBestBuyResults] =
-    useRecoilState(BestBuyResultsState);
-  const [WalmartResults, setWalmartResults] =
-    useRecoilState(WalmartResultsState);
-  const [loading, setLaoding] = useState(false);
-  const [averagePrice, setAveragePrice] = useState();
+  const [EbayResults, setEbayResults] = useRecoilState(EbayResultsState);
+  const [loading, setLoading] = useState(false);
+  const [averagePrice, setAveragePrice] = useState({ amazon: 0, ebay: 0 });
   const [error, setError] = useState("");
   const [activePlatformTab, setActivePlatformTab] = useState("Amazon");
 
   // handling the form
   const submitForm = async () => {
-    setLaoding(true);
+    setLoading(true);
     if (loading) return;
-    // const amazonRequest = async () => {
-    //   await axios.post("/api/scrape/amazon", { productName });
-    // };
-    await axios.post("/api/scrape/walmart", {
-      productName,
-    });
 
-    // const bestbuyRequest = async () => {
-    //   await axios.post("/api/scrape/bestbuy", { productName });
-    // };
-    // const [amazon, walmart, bestbuy] = await Promise.all([
-    //   amazonRequest(),
-    //   walmartRequest(),
-    //   bestbuyRequest(),
-    // ]);
-    // setAmazonResults(amazon.data);
-    // setWalmartResults(walmart.data);
-    // setBestBuyResults(bestbuy.data);
-    setLaoding(false);
+    const amazonRequest = axios
+      .post("/api/scrape/amazon", { productName })
+      .then((response) => response.data)
+      .catch((error) => {
+        console.error("Error scraping Amazon:", error);
+        return null;
+      });
+
+    const ebayRequest = axios
+      .post("/api/scrape/ebay", { productName })
+      .then((response) => response.data)
+      .catch((error) => {
+        console.error("Error scraping eBay:", error);
+        return null;
+      });
+
+    const [amazonData, ebayData] = await Promise.all([
+      amazonRequest,
+      ebayRequest,
+    ]);
+
+    setAmazonResults(amazonData);
+    setEbayResults(ebayData);
+    setLoading(false);
   };
+
   // calculate the average price of amazon results
   useEffect(() => {
-    if (AmazonResults.length == 0 || activePlatformTab !== "Amazon") return;
+    if (AmazonResults.length == 0) return;
     // Calculate average, lowest, and highest prices
     let totalPrice = 0;
     AmazonResults.filter((item) => item !== null).forEach((item) => {
@@ -66,40 +69,31 @@ export default function Home() {
       }
     });
 
-    setAveragePrice(
-      AmazonResults.length > 0 ? totalPrice / AmazonResults.length : 0
-    );
+    setAveragePrice((curr) => {
+      return {
+        ...curr,
+        amazon:
+          AmazonResults.length > 0 ? totalPrice / AmazonResults.length : 0,
+      };
+    });
   }, [AmazonResults]);
-  // calculate the average price of walmart results
+  // calculate the average price of Ebay results
   useEffect(() => {
-    if (WalmartResults.length == 0 || activePlatformTab !== "Amazon") return;
+    if (EbayResults.length == 0) return;
     // Calculate average, lowest, and highest prices
     let totalPrice = 0;
-    WalmartResults.filter((item) => item !== null).forEach((item) => {
+    EbayResults.filter((item) => item !== null).forEach((item) => {
       if (item.price !== null) {
         totalPrice += item.price;
       }
     });
-
-    setAveragePrice(
-      WalmartResults.length > 0 ? totalPrice / WalmartResults.length : 0
-    );
-  }, [WalmartResults]);
-  // calculate the average price of bestbuy results
-  useEffect(() => {
-    if (BestBuyResults.length == 0 || activePlatformTab !== "Amazon") return;
-    // Calculate average, lowest, and highest prices
-    let totalPrice = 0;
-    BestBuyResults.filter((item) => item !== null).forEach((item) => {
-      if (item.price !== null) {
-        totalPrice += item.price;
-      }
+    setAveragePrice((curr) => {
+      return {
+        ...curr,
+        ebay: EbayResults.length > 0 ? totalPrice / EbayResults.length : 0,
+      };
     });
-
-    setAveragePrice(
-      BestBuyResults.length > 0 ? totalPrice / BestBuyResults.length : 0
-    );
-  }, [BestBuyResults]);
+  }, [EbayResults]);
 
   if (loading) {
     return (
@@ -143,13 +137,13 @@ export default function Home() {
         </span>
       </form>
 
-      {AmazonResults.length == 0 && (
-        <span className="w-full py-4 items-center justify-center flex space-x-2 mt-12">
+      {AmazonResults.length > 0 && (
+        <span className="w-full py-4 items-center justify-center flex space-x-2 mt-12 border-b border-black/20">
           {tabs.map((tab) => (
             <span
               onClick={() => setActivePlatformTab(tab.name)}
               key={tab.key}
-              className={`cursor-pointer p-2
+              className={`cursor-pointer p-2 w-[30%] text-center rounded-sm
                smooth ${
                  tab.name == activePlatformTab
                    ? "text-[#9FFF45] bg-[#131633]"
@@ -162,108 +156,74 @@ export default function Home() {
         </span>
       )}
 
-      {AmazonResults.length > 0 &&
-        activePlatformTab ==
-          "Amazon"(
-            <div className="grid grid-cols-3 gap-x-4 mt-12">
-              <div
-                className="col-span-2 w-full place-items-center gap-6 mt-12 
-        max-h-[70vh] overflow-y-scroll bg-white text-black 
+      {AmazonResults.length > 0 && activePlatformTab == "Amazon" && (
+        <div className="grid grid-cols-3 gap-x-4 ">
+          <div
+            className="col-span-2 w-full place-items-center gap-6 mt-12 
+        max-h-[100vh] overflow-y-scroll bg-white text-black 
         font-medium py-10 px-6 border border-black/10 "
-              >
-                {AmazonResults.filter((item) => item !== null).map((item) => (
-                  <div
-                    key={item.title}
-                    className="border-b border-black py-10 "
-                  >
-                    <img
-                      src={item.imageSrc}
-                      className="h-[300px] w-[300px] object-cover object-center mb-4"
-                      alt={item.title + "-image"}
-                    />
-                    <p>{item.title}</p>
-                    <p className="font-bold">${item.price}</p>
-                    <a href={item.link} className="cursor-pointer">
-                      check product →
-                    </a>
-                  </div>
-                ))}
+          >
+            {AmazonResults.filter((item) => item !== null).map((item) => (
+              <div key={item.title} className="border-b border-black/20 py-10 ">
+                <img
+                  src={item.imageSrc}
+                  className="h-[300px] w-[300px] object-fit object-center 
+                  mb-4 rounded-xl border border-black/10"
+                  alt={item.title + "-image"}
+                />
+                <p className="text-black/80 w-[80%]">{item.title}</p>
+                <p className="font-bold text-xl">${item.price}</p>
+                <a
+                  href={item.link}
+                  className="cursor-pointer smooth opacity-70 hover:opacity-100"
+                >
+                  check product →
+                </a>
               </div>
-              <div className="col-span-1 h-full items-center justify-center flex">
-                <h3>
-                  Average Price is <br /> <b>${averagePrice.toFixed(2)}</b>
-                </h3>
-              </div>
-            </div>
-          )}
-      {WalmartResults.length > 0 &&
-        activePlatformTab ==
-          "Walmart"(
-            <div className="grid grid-cols-3 gap-x-4 mt-12">
-              <div
-                className="col-span-2 w-full place-items-center gap-6 mt-12 
-        max-h-[70vh] overflow-y-scroll bg-white text-black 
+            ))}
+          </div>
+          <div className="col-span-1 h-full items-center justify-center flex">
+            <h1 className="text-2xl text-center">
+              {activePlatformTab} Average Price is <br />{" "}
+              <b className="text-3xl">${averagePrice.amazon.toFixed(2)}</b>
+            </h1>
+          </div>
+        </div>
+      )}
+      {EbayResults.length > 0 && activePlatformTab == "Ebay" && (
+        <div className="grid grid-cols-3 gap-x-4">
+          <div
+            className="col-span-2 w-full place-items-center gap-6 mt-12 
+        max-h-[100vh] overflow-y-scroll bg-white text-black 
         font-medium py-10 px-6 border border-black/10 "
-              >
-                {WalmartResults.filter((item) => item !== null).map((item) => (
-                  <div
-                    key={item.title}
-                    className="border-b border-black py-10 "
-                  >
-                    <img
-                      src={item.imageSrc}
-                      className="h-[300px] w-[300px] object-cover object-center mb-4"
-                      alt={item.title + "-image"}
-                    />
-                    <p>{item.title}</p>
-                    <p className="font-bold">${item.price}</p>
-                    <a href={item.link} className="cursor-pointer">
-                      check product →
-                    </a>
-                  </div>
-                ))}
+          >
+            {EbayResults.filter((item) => item !== null).map((item) => (
+              <div key={item.title} className="border-b border-black/20 py-10 ">
+                <img
+                  src={item.imageSrc}
+                  className="h-[300px] w-[300px] object-fit object-center mb-4 rounded-xl"
+                  alt={item.title + "-image"}
+                />
+                <p className="text-black/80 w-[80%]">{item.title}</p>
+                <p className="font-bold text-xl">${item.price}</p>
+                <a
+                  href={item.link}
+                  className="cursor-pointer smooth opacity-70 hover:opacity-100"
+                >
+                  check product →
+                </a>
               </div>
-              <div className="col-span-1 h-full items-center justify-center flex">
-                <h3>
-                  Average Price is <br /> <b>${averagePrice.toFixed(2)}</b>
-                </h3>
-              </div>
-            </div>
-          )}
-      {BestBuyResults.length > 0 &&
-        activePlatformTab ==
-          "BestBuy"(
-            <div className="grid grid-cols-3 gap-x-4 mt-12">
-              <div
-                className="col-span-2 w-full place-items-center gap-6 mt-12 
-        max-h-[70vh] overflow-y-scroll bg-white text-black 
-        font-medium py-10 px-6 border border-black/10 "
-              >
-                {BestBuyResults.filter((item) => item !== null).map((item) => (
-                  <div
-                    key={item.title}
-                    className="border-b border-black py-10 "
-                  >
-                    <img
-                      src={item.imageSrc}
-                      className="h-[300px] w-[300px] object-cover object-center mb-4"
-                      alt={item.title + "-image"}
-                    />
-                    <p>{item.title}</p>
-                    <p className="font-bold">${item.price}</p>
-                    <a href={item.link} className="cursor-pointer">
-                      check product →
-                    </a>
-                  </div>
-                ))}
-              </div>
-              <div className="col-span-1 h-full items-center justify-center flex">
-                <h3>
-                  Average Price is <br /> <b>${averagePrice.toFixed(2)}</b>
-                </h3>
-              </div>
-            </div>
-          )}
+            ))}
+          </div>
+          <div className="col-span-1 h-full items-center justify-center flex">
+            <h1 className="text-2xl text-center">
+              {activePlatformTab} Average Price is <br />{" "}
+              <b className="text-3xl">${averagePrice.ebay.toFixed(2)}</b>
+            </h1>
+          </div>
+        </div>
+      )}
+
       {error && <div>{error}</div>}
     </main>
   );

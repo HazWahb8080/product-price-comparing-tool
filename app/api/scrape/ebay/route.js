@@ -21,48 +21,39 @@ export async function POST(request) {
     IS_PRODUCTION
       ? puppeteerExtra.connect({ browserWSEndpoint })
       : puppeteerExtra.launch({
-          headless: false,
+          headless: true,
         });
 
   try {
     const browser = await getBrowser();
     const page = await browser.newPage();
+    await page.goto("https://www.ebay.com/");
+    await page.waitForSelector("#gh-ac");
+    await page.type("#gh-ac", productName);
 
-    await page.goto(`https://www.walmart.com/search?q=${productName}`, {
-      waitUntil: "domcontentloaded",
-      timeout: 60000,
-    });
+    await page.waitForSelector("#gh-btn");
+    await page.click("#gh-btn");
+
+    await page.waitForSelector(".s-item"); // Wait for search results to load
 
     const searchResults = await page.evaluate(() => {
-      console.log("items");
-      const items = document.querySelectorAll("section");
+      const items = document.querySelectorAll(".s-item");
       return Array.from(items)
-        .slice(1, 11)
+        .slice(1, 20)
         .map((item) => {
-          console.log(item);
-          const priceElement = item.querySelector("span.w_iUH7");
-          const titleElement = item.querySelector(
-            "span[data-automation-id='product-title']"
-          );
-          const title = titleElement
-            ? titleElement.textContent.trim()
-            : "Title not found";
-          const price = priceElement
-            ? priceElement.textContent.trim()
-            : "Price not found";
-
-          if (title.includes("not found")) {
-            // do nothing
-            return null;
-          } else {
-            return { title, price };
-          }
-        })
-        .filter(Boolean); // Remove null values from the array
+          const title = item.querySelector(".s-item__title").textContent.trim();
+          const priceElement = item
+            .querySelector(".s-item__price")
+            .textContent.trim();
+          const price = parseFloat(priceElement.replace("$", ""));
+          const imageSrc = item.querySelector(".s-item__image-wrapper img").src; // Extract image URL
+          const url = item.querySelector("a").href;
+          return { title, price, url, imageSrc };
+        });
     });
 
-    // await browser.close();
-    console.log(searchResults);
+    await browser.close();
+
     return Response.json(searchResults);
   } catch (error) {
     return Response.json(error.message);
