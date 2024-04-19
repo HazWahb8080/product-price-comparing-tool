@@ -46,7 +46,7 @@ export async function POST(request) {
       productName.trim().split(" ").length > 1 ? false : true;
     let newProductName = productNameOneWord
       ? `wholesale-${productName.trim()}`
-      : productName.trim().replace(" ", "-");
+      : productName.trim().replaceAll(" ", "-");
     await page.goto(`https://www.aliexpress.us/w/${newProductName}.html`);
 
     await page.waitForSelector(".search-item-card-wrapper-gallery");
