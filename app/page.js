@@ -58,39 +58,43 @@ export default function Home() {
 
   // calculate the average price of amazon results
   useEffect(() => {
-    if (AliExpressResults.length == 0) return;
+    let newArray = [...AliExpressResults];
+    if (newArray.length == 0) return;
     // Calculate average, lowest, and highest prices
     let totalPrice = 0;
-    AliExpressResults.filter((item) => item !== null).forEach((item) => {
-      if (item.price !== null) {
-        totalPrice += item.price;
-      }
-    });
+    newArray
+      .filter((item) => item !== null)
+      .forEach((item) => {
+        if (item.price !== null) {
+          totalPrice += parseFloat(item.price);
+        }
+      });
 
     setAveragePrice((curr) => {
       return {
         ...curr,
-        aliExpress:
-          AliExpressResults.length > 0
-            ? totalPrice / AliExpressResults.length
-            : 0,
+        aliExpress: newArray.length > 0 ? totalPrice / newArray.length : 0,
       };
     });
   }, [AliExpressResults]);
   // calculate the average price of Ebay results
   useEffect(() => {
     if (EbayResults.length == 0) return;
+    let newArray = [...EbayResults];
+
     // Calculate average, lowest, and highest prices
     let totalPrice = 0;
-    EbayResults.filter((item) => item !== null).forEach((item) => {
-      if (item.price !== null) {
-        totalPrice += item.price;
-      }
-    });
+    newArray
+      .filter((item) => item !== null)
+      .forEach((item) => {
+        if (item.price !== null) {
+          totalPrice += parseFloat(item.price);
+        }
+      });
     setAveragePrice((curr) => {
       return {
         ...curr,
-        ebay: EbayResults.length > 0 ? totalPrice / EbayResults.length : 0,
+        ebay: newArray.length > 0 ? totalPrice / newArray.length : 0,
       };
     });
   }, [EbayResults]);

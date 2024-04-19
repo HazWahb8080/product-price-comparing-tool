@@ -32,7 +32,7 @@ export async function POST(request) {
     return userAgents[randomUAIndex];
   };
   try {
-    // const browser = await puppeteer.connect({ browserWSEndpoint });
+    // const browser = await puppeteer.launch({ headless: false });
     const browser = await puppeteer.connect({ browserWSEndpoint });
     const page = await browser.newPage();
     // Custom user agent
@@ -41,12 +41,7 @@ export async function POST(request) {
     // Set custom user agent
     await page.setUserAgent(customUA);
 
-    // handling the search query of aliexpress
-    let productNameOneWord =
-      productName.trim().split(" ").length > 1 ? false : true;
-    let newProductName = productNameOneWord
-      ? `wholesale-${productName.trim()}`
-      : productName.trim().replaceAll(" ", "-");
+    let newProductName = `wholesale-${productName.trim().replaceAll(" ", "-")}`;
     await page.goto(`https://www.aliexpress.us/w/${newProductName}.html`);
 
     await page.waitForSelector(".search-item-card-wrapper-gallery");
@@ -61,10 +56,15 @@ export async function POST(request) {
           const title = item
             .querySelector(".multi--titleText--nXeOvyr")
             .textContent.trim();
-          const priceElement = item
-            .querySelector(".multi--price-sale--U-S0jtj")
-            .textContent.trim();
-          const price = parseFloat(priceElement.replace("$", ""));
+          const priceElement = item.querySelector(
+            ".multi--price-sale--U-S0jtj"
+          );
+          let price = "";
+          if (priceElement) {
+            const priceText = priceElement.textContent.trim();
+            // Remove currency symbols and keep only digits and commas
+            price = priceText.replace(/[^\d,.]/g, "");
+          }
           const url = item.querySelector(
             ".search-item-card-wrapper-gallery a"
           ).href;

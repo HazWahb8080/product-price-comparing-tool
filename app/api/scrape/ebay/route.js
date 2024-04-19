@@ -29,10 +29,13 @@ export async function POST(request) {
         .slice(1, 20)
         .map((item) => {
           const title = item.querySelector(".s-item__title").textContent.trim();
-          const priceElement = item
-            .querySelector(".s-item__price")
-            .textContent.trim();
-          const price = parseFloat(priceElement.replace("$", ""));
+          const priceElement = item.querySelector(".s-item__price");
+          let price = "";
+          if (priceElement) {
+            const priceText = priceElement.textContent.trim();
+            // Remove currency symbols and keep only digits and commas
+            price = priceText.replace(/[^\d,.]/g, "");
+          }
           const imageSrc = item.querySelector(".s-item__image-wrapper img").src; // Extract image URL
           const url = item.querySelector("a").href;
           return { title, price, url, imageSrc };
