@@ -1,4 +1,6 @@
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import { executablePath } from "puppeteer";
 import { NextResponse } from "next/server";
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +14,7 @@ export async function OPTIONS(request) {
 
 export async function POST(request) {
   const { productName } = await request.json();
+  const browserWSEndpoint = `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`;
 
   const generateRandomUA = () => {
     // Array of random user agents
@@ -30,57 +33,35 @@ export async function POST(request) {
     return userAgents[randomUAIndex];
   };
   try {
-    const browser = await puppeteer.launch({
-      headless: false,
-    });
+    // const browser = await puppeteer.connect({ browserWSEndpoint });
+    const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
     // Custom user agent
     const customUA = generateRandomUA();
 
     // Set custom user agent
     await page.setUserAgent(customUA);
-    await page.goto("https://www.amazon.com", {
-      waitUntil: "domcontentloaded",
-    });
-
-    // Type the product name into the search input field and press Enter
-    await page.waitForSelector("#twotabsearchtextbox");
-    await page.type("#twotabsearchtextbox", productName);
+    await page.goto("https://www.aliexpress.us/");
+    await page.waitForSelector(".search--keyword--15P08Ji");
+    await page.type(".search--keyword--15P08Ji", productName);
     await page.keyboard.press("Enter");
     await page.waitForNavigation({ waitUntil: "domcontentloaded" });
 
-    // Extract data from the search results
-    const searchResults = await page.$$eval(".s-result-item", (items) => {
-      return items.slice(1, 20).map((item) => {
-        const titleElement = item.querySelector("h2 > a");
-        const priceElement = item.querySelector(".a-price > .a-offscreen");
-        const urlElement = item.querySelector("h2 > a");
-        const imageElement = item.querySelector(".s-image");
+    await page.waitForSelector(".list-item");
 
-        // Check if elements are available before accessing their properties
-        const title = titleElement
-          ? titleElement.textContent.trim()
-          : "Title not found";
-        const price = priceElement
-          ? parseFloat(priceElement.textContent.trim().replace("$", ""))
-          : null;
-        const url = urlElement ? urlElement.href : "#";
-        const imageSrc = imageElement ? imageElement.src : null;
-
-        if (
-          title.includes() == "not found" ||
-          !price ||
-          url == "#" ||
-          !imageSrc
-        ) {
-          // do nothing
-        } else {
-          return { title, price, url, imageSrc };
-        }
-      });
+    const searchResults = await page.evaluate(() => {
+      const items = document.querySelectorAll(".list-item");
+      return Array.from(items)
+        .slice(0, 10)
+        .map((item) => {
+          const title = item.querySelector(".item-title").textContent.trim();
+          const price = item.querySelector(".price").textContent.trim();
+          const url = item.querySelector(".item-title").href;
+          return { title, price, url };
+        });
     });
 
-    await browser.close();
+    // await browser.close();
     return Response.json(searchResults);
   } catch (error) {
     return Response.json(error.message);
