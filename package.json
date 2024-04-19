@@ -12,6 +12,7 @@
     "axios": "^1.6.8",
     "next": "14.2.1",
     "puppeteer": "^22.6.5",
+    "puppeteer-core": "^22.6.5",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-anonymize-ua": "^2.4.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",

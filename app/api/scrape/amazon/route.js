@@ -1,6 +1,5 @@
 import puppeteer from "puppeteer";
 import { NextResponse } from "next/server";
-import puppeteerExtra from "puppeteer-extra";
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -32,13 +31,18 @@ export async function POST(request) {
   };
 
   const browserWSEndpoint =
-    "wss://production-sfo.browserless.io?token=750fcb31-ff6d-45ac-8e7b-4527046ac6dc";
+    "wss://chrome.browserless.io?token=750fcb31-ff6d-45ac-8e7b-4527046ac6dc";
   const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
+  const getBrowser = async () =>
+    IS_PRODUCTION
+      ? puppeteer.connect({ browserWSEndpoint })
+      : puppeteer.launch({
+          headless: false,
+        });
+
   try {
-    const browser = await puppeteer.launch({
-      headless: true,
-    });
+    const browser = await getBrowser();
     const page = await browser.newPage();
     // Custom user agent
     const customUA = generateRandomUA();
