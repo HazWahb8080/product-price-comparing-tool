@@ -34,34 +34,46 @@ export async function POST(request) {
   };
   try {
     // const browser = await puppeteer.connect({ browserWSEndpoint });
-    const browser = await puppeteer.launch({ headless: false });
+    const browser = await puppeteer.connect({ browserWSEndpoint });
     const page = await browser.newPage();
     // Custom user agent
     const customUA = generateRandomUA();
 
     // Set custom user agent
     await page.setUserAgent(customUA);
-    await page.goto("https://www.aliexpress.us/");
-    await page.waitForSelector(".search--keyword--15P08Ji");
-    await page.type(".search--keyword--15P08Ji", productName);
-    await page.keyboard.press("Enter");
-    await page.waitForNavigation({ waitUntil: "domcontentloaded" });
 
-    await page.waitForSelector(".list-item");
+    // handling the search query of aliexpress
+    let productNameOneWord =
+      productName.trim().split(" ").length > 1 ? false : true;
+    let newProductName = productNameOneWord
+      ? `wholesale-${productName.trim()}`
+      : productName.trim().replace(" ", "-");
+    await page.goto(`https://www.aliexpress.us/w/${newProductName}.html`);
+
+    await page.waitForSelector(".search-item-card-wrapper-gallery");
 
     const searchResults = await page.evaluate(() => {
-      const items = document.querySelectorAll(".list-item");
+      const items = document.querySelectorAll(
+        ".search-item-card-wrapper-gallery"
+      );
       return Array.from(items)
         .slice(0, 10)
         .map((item) => {
-          const title = item.querySelector(".item-title").textContent.trim();
-          const price = item.querySelector(".price").textContent.trim();
-          const url = item.querySelector(".item-title").href;
+          const title = item
+            .querySelector(".multi--titleText--nXeOvyr")
+            .textContent.trim();
+          const priceElement = item
+            .querySelector(".multi--price-sale--U-S0jtj")
+            .textContent.trim();
+          const price = parseFloat(priceElement.replace("$", ""));
+          const url = item.querySelector(
+            ".search-item-card-wrapper-gallery a"
+          ).href;
           return { title, price, url };
         });
     });
 
-    // await browser.close();
+    await browser.close();
     return Response.json(searchResults);
   } catch (error) {
     return Response.json(error.message);

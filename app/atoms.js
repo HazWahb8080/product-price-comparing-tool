@@ -1,7 +1,7 @@
 import { atom } from "recoil";
 
-export const AmazonResultsState = atom({
-  key: "AmazonResultsState",
+export const AliExpressResultsState = atom({
+  key: "AliExpressResultsState",
   default: [],
 });
 

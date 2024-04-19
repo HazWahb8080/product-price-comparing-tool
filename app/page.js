@@ -4,36 +4,34 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRecoilState } from "recoil";
-import {
-  AmazonResultsState,
-  BestBuyResultsState,
-  EbayResultsState,
-} from "./atoms";
+import { AliExpressResultsState, EbayResultsState } from "./atoms";
 
 // #9FFF45 yellow
 // #131633 blackish
 // #2135E5 blueish
 const tabs = [
-  { id: 0, name: "Amazon" },
+  { id: 0, name: "AliExpress" },
   { id: 1, name: "Ebay" },
 ];
 
 export default function Home() {
   const [productName, setProductName] = useState("");
-  const [AmazonResults, setAmazonResults] = useRecoilState(AmazonResultsState);
+  const [AliExpressResults, setAliExpressResults] = useRecoilState(
+    AliExpressResultsState
+  );
   const [EbayResults, setEbayResults] = useRecoilState(EbayResultsState);
   const [loading, setLoading] = useState(false);
-  const [averagePrice, setAveragePrice] = useState({ amazon: 0, ebay: 0 });
+  const [averagePrice, setAveragePrice] = useState({ aliExpress: 0, ebay: 0 });
   const [error, setError] = useState("");
-  const [activePlatformTab, setActivePlatformTab] = useState("Amazon");
+  const [activePlatformTab, setActivePlatformTab] = useState("AliExpress");
 
   // handling the form
   const submitForm = async () => {
     setLoading(true);
     if (loading) return;
 
-    const amazonRequest = axios
-      .post("/api/scrape/amazon", { productName })
+    const aliExpressRequest = axios
+      .post("/api/scrape/aliExpress", { productName })
       .then((response) => response.data)
       .catch((error) => {
         console.error("Error scraping Amazon:", error);
@@ -48,22 +46,22 @@ export default function Home() {
         return null;
       });
 
-    const [amazonData, ebayData] = await Promise.all([
-      amazonRequest,
+    const [aliExpressData, ebayData] = await Promise.all([
+      aliExpressRequest,
       ebayRequest,
     ]);
 
-    setAmazonResults(amazonData);
+    setAliExpressResults(aliExpressData);
     setEbayResults(ebayData);
     setLoading(false);
   };
 
   // calculate the average price of amazon results
   useEffect(() => {
-    if (AmazonResults.length == 0) return;
+    if (AliExpressResults.length == 0) return;
     // Calculate average, lowest, and highest prices
     let totalPrice = 0;
-    AmazonResults.filter((item) => item !== null).forEach((item) => {
+    AliExpressResults.filter((item) => item !== null).forEach((item) => {
       if (item.price !== null) {
         totalPrice += item.price;
       }
@@ -72,11 +70,13 @@ export default function Home() {
     setAveragePrice((curr) => {
       return {
         ...curr,
-        amazon:
-          AmazonResults.length > 0 ? totalPrice / AmazonResults.length : 0,
+        aliExpress:
+          AliExpressResults.length > 0
+            ? totalPrice / AliExpressResults.length
+            : 0,
       };
     });
-  }, [AmazonResults]);
+  }, [AliExpressResults]);
   // calculate the average price of Ebay results
   useEffect(() => {
     if (EbayResults.length == 0) return;
@@ -137,7 +137,7 @@ export default function Home() {
         </span>
       </form>
 
-      {AmazonResults.length > 0 && (
+      {AliExpressResults.length > 0 && (
         <span className="w-full py-4 items-center justify-center flex space-x-2 mt-12 border-b border-black/20">
           {tabs.map((tab) => (
             <span
@@ -156,17 +156,17 @@ export default function Home() {
         </span>
       )}
 
-      {AmazonResults.length > 0 && activePlatformTab == "Amazon" && (
+      {AliExpressResults.length > 0 && activePlatformTab == "AliExpress" && (
         <div className="grid grid-cols-3 gap-x-4 ">
           <div
             className="col-span-2 w-full place-items-center gap-6 mt-12 
         max-h-[100vh] overflow-y-scroll bg-white text-black 
         font-medium py-10 px-6 border border-black/10 "
           >
-            {AmazonResults.filter((item) => item !== null).map((item) => (
+            {AliExpressResults.filter((item) => item !== null).map((item) => (
               <div key={item.title} className="border-b border-black/20 py-10 ">
                 <img
-                  src={item.imageSrc}
+                  src={"https://via.placeholder.com/400"}
                   className="h-[300px] w-[300px] object-fit object-center 
                   mb-4 rounded-xl border border-black/10"
                   alt={item.title + "-image"}
@@ -174,7 +174,7 @@ export default function Home() {
                 <p className="text-black/80 w-[80%]">{item.title}</p>
                 <p className="font-bold text-xl">${item.price}</p>
                 <a
-                  href={item.link}
+                  href={item.url}
                   className="cursor-pointer smooth opacity-70 hover:opacity-100"
                 >
                   check product →
@@ -185,7 +185,7 @@ export default function Home() {
           <div className="col-span-1 h-full items-center justify-center flex">
             <h1 className="text-2xl text-center">
               {activePlatformTab} Average Price is <br />{" "}
-              <b className="text-3xl">${averagePrice.amazon.toFixed(2)}</b>
+              <b className="text-3xl">${averagePrice.aliExpress.toFixed(2)}</b>
             </h1>
           </div>
         </div>
@@ -207,7 +207,7 @@ export default function Home() {
                 <p className="text-black/80 w-[80%]">{item.title}</p>
                 <p className="font-bold text-xl">${item.price}</p>
                 <a
-                  href={item.link}
+                  href={item.url}
                   className="cursor-pointer smooth opacity-70 hover:opacity-100"
                 >
                   check product →
