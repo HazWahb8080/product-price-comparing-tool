@@ -12,15 +12,17 @@ export async function POST(request) {
     "wss://production-sfo.browserless.io?token=750fcb31-ff6d-45ac-8e7b-4527046ac6dc";
   const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
-  const getBrowser = async () =>
-    IS_PRODUCTION
-      ? puppeteer.connect({ browserWSEndpoint })
-      : puppeteer.launch({
-          headless: true,
-        });
+  // const getBrowser = async () =>
+  //   IS_PRODUCTION
+  //     ? puppeteer.connect({ browserWSEndpoint })
+  //     : puppeteer.launch({
+  //         headless: true,
+  //       });
 
   try {
-    const browser = await getBrowser();
+    const browser = await puppeteer.launch({
+      headless: true,
+    });
     const page = await browser.newPage();
     await page.goto("https://www.ebay.com/");
     await page.waitForSelector("#gh-ac");
