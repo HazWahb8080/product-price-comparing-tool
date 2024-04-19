@@ -29,6 +29,9 @@ export default function Home() {
   const submitForm = async () => {
     setLoading(true);
     if (loading) return;
+    // clear the previous results if..
+    setAliExpressResults([]);
+    setEbayResults([]);
 
     const aliExpressRequest = axios
       .post("/api/scrape/aliExpress", { productName })
