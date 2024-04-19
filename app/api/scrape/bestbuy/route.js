@@ -20,9 +20,7 @@ export async function POST(request) {
   const getBrowser = async () =>
     IS_PRODUCTION
       ? puppeteer.connect({ browserWSEndpoint })
-      : puppeteer.launch({
-          headless: true,
-        });
+      : puppeteer.launch({ headless: true });
 
   try {
     const browser = await getBrowser();
@@ -69,7 +67,6 @@ export async function POST(request) {
     });
 
     await browser.close();
-    console.log(searchResults);
     return Response.json(searchResults);
   } catch (error) {
     return Response.json(error.message);

@@ -35,23 +35,24 @@ export default function Home() {
   const submitForm = async () => {
     setLaoding(true);
     if (loading) return;
-    const amazonRequest = async () => {
-      await axios.post("/api/amazon/scrape", { productName });
-    };
-    const walmartRequest = async () => {
-      await axios.post("/api/walmart/scrape", { productName });
-    };
-    const bestbuyRequest = async () => {
-      await axios.post("/api/bestbuy/scrape", { productName });
-    };
-    const [amazon, walmart, bestbuy] = await Promise.all([
-      amazonRequest(),
-      walmartRequest(),
-      bestbuyRequest(),
-    ]);
-    setAmazonResults(amazon.data);
-    setWalmartResults(walmart.data);
-    setBestBuyResults(bestbuy.data);
+    // const amazonRequest = async () => {
+    //   await axios.post("/api/scrape/amazon", { productName });
+    // };
+    await axios.post("/api/scrape/walmart", {
+      productName,
+    });
+
+    // const bestbuyRequest = async () => {
+    //   await axios.post("/api/scrape/bestbuy", { productName });
+    // };
+    // const [amazon, walmart, bestbuy] = await Promise.all([
+    //   amazonRequest(),
+    //   walmartRequest(),
+    //   bestbuyRequest(),
+    // ]);
+    // setAmazonResults(amazon.data);
+    // setWalmartResults(walmart.data);
+    // setBestBuyResults(bestbuy.data);
     setLaoding(false);
   };
   // calculate the average price of amazon results
