@@ -1,8 +1,6 @@
 import puppeteer from "puppeteer";
 import { NextResponse } from "next/server";
 import puppeteerExtra from "puppeteer-extra";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import AnonymizeUAPlugin from "puppeteer-extra-plugin-anonymize-ua";
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -15,8 +13,6 @@ export async function OPTIONS(request) {
 
 export async function POST(request) {
   const { productName } = await request.json();
-  puppeteerExtra.use(StealthPlugin());
-  puppeteerExtra.use(AnonymizeUAPlugin());
 
   const generateRandomUA = () => {
     // Array of random user agents
@@ -41,8 +37,8 @@ export async function POST(request) {
 
   const getBrowser = async () =>
     IS_PRODUCTION
-      ? puppeteerExtra.connect({ browserWSEndpoint })
-      : puppeteerExtra.launch({
+      ? puppeteer.connect({ browserWSEndpoint })
+      : puppeteer.launch({
           headless: false,
         });
 
