@@ -66,7 +66,7 @@ export default function Home() {
       .filter((item) => item !== null)
       .forEach((item) => {
         if (item.price !== null) {
-          totalPrice += item.price;
+          totalPrice += Number(item.price);
         }
       });
 
@@ -88,7 +88,7 @@ export default function Home() {
       .filter((item) => item !== null)
       .forEach((item) => {
         if (item.price !== null) {
-          totalPrice += item.price;
+          totalPrice += Number(item.price);
         }
       });
     setAveragePrice((curr) => {
@@ -168,7 +168,10 @@ export default function Home() {
         font-medium py-10 px-6 border border-black/10 "
           >
             {AliExpressResults.filter((item) => item !== null).map((item) => (
-              <div key={item.title} className="border-b border-black/20 py-10 ">
+              <div
+                key={item.title + item.price}
+                className="border-b border-black/20 py-10 "
+              >
                 <img
                   src={"https://via.placeholder.com/400"}
                   className="h-[300px] w-[300px] object-fit object-center 
@@ -189,7 +192,7 @@ export default function Home() {
           <div className="col-span-1 h-full items-center justify-center flex">
             <h1 className="text-2xl text-center">
               {activePlatformTab} Average Price is <br />{" "}
-              <b className="text-3xl">${averagePrice.aliExpress}</b>
+              <b className="text-3xl">${averagePrice.aliExpress.toFixed(2)}</b>
             </h1>
           </div>
         </div>
@@ -202,7 +205,10 @@ export default function Home() {
         font-medium py-10 px-6 border border-black/10 "
           >
             {EbayResults.filter((item) => item !== null).map((item) => (
-              <div key={item.title} className="border-b border-black/20 py-10 ">
+              <div
+                key={item.title + item.price}
+                className="border-b border-black/20 py-10 "
+              >
                 <img
                   src={item.imageSrc}
                   className="h-[300px] w-[300px] object-fit object-center mb-4 rounded-xl"
@@ -222,7 +228,7 @@ export default function Home() {
           <div className="col-span-1 h-full items-center justify-center flex">
             <h1 className="text-2xl text-center">
               {activePlatformTab} Average Price is <br />{" "}
-              <b className="text-3xl">${averagePrice.ebay}</b>
+              <b className="text-3xl">${averagePrice.ebay.toFixed(2)}</b>
             </h1>
           </div>
         </div>

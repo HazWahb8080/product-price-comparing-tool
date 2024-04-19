@@ -34,7 +34,7 @@ export async function POST(request) {
           if (priceElement) {
             const priceText = priceElement.textContent.trim();
             // Remove currency symbols and keep only digits and commas
-            price = priceText.replace(/[^\d,.]/g, "");
+            price = Number(priceText.replace(/[^\d,.]/g, ""));
           }
           const imageSrc = item.querySelector(".s-item__image-wrapper img").src; // Extract image URL
           const url = item.querySelector("a").href;

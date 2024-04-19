@@ -63,7 +63,7 @@ export async function POST(request) {
           if (priceElement) {
             const priceText = priceElement.textContent.trim();
             // Remove currency symbols and keep only digits and commas
-            price = priceText.replace(/[^\d,.]/g, "");
+            price = Number(priceText.replace(/[^\d,.]/g, ""));
           }
           const url = item.querySelector(
             ".search-item-card-wrapper-gallery a"
