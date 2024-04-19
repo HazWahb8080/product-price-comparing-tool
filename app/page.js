@@ -66,7 +66,7 @@ export default function Home() {
       .filter((item) => item !== null)
       .forEach((item) => {
         if (item.price !== null) {
-          totalPrice += parseFloat(item.price);
+          totalPrice += item.price;
         }
       });
 
@@ -88,7 +88,7 @@ export default function Home() {
       .filter((item) => item !== null)
       .forEach((item) => {
         if (item.price !== null) {
-          totalPrice += parseFloat(item.price);
+          totalPrice += item.price;
         }
       });
     setAveragePrice((curr) => {
@@ -189,7 +189,7 @@ export default function Home() {
           <div className="col-span-1 h-full items-center justify-center flex">
             <h1 className="text-2xl text-center">
               {activePlatformTab} Average Price is <br />{" "}
-              <b className="text-3xl">${averagePrice.aliExpress.toFixed(2)}</b>
+              <b className="text-3xl">${averagePrice.aliExpress}</b>
             </h1>
           </div>
         </div>
@@ -222,7 +222,7 @@ export default function Home() {
           <div className="col-span-1 h-full items-center justify-center flex">
             <h1 className="text-2xl text-center">
               {activePlatformTab} Average Price is <br />{" "}
-              <b className="text-3xl">${averagePrice.ebay.toFixed(2)}</b>
+              <b className="text-3xl">${averagePrice.ebay}</b>
             </h1>
           </div>
         </div>
