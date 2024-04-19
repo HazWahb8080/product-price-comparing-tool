@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 export async function OPTIONS(request) {
   return NextResponse.json();
 }
+export const maxDuration = 40;
 
 export async function POST(request) {
   const { productName } = await request.json();

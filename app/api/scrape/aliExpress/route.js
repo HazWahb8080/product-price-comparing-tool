@@ -1,6 +1,4 @@
 import puppeteer from "puppeteer-extra";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { executablePath } from "puppeteer";
 import { NextResponse } from "next/server";
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +9,7 @@ export const corsHeaders = {
 export async function OPTIONS(request) {
   return NextResponse.json({}, { headers: corsHeaders });
 }
+export const maxDuration = 40;
 
 export async function POST(request) {
   const { productName } = await request.json();
