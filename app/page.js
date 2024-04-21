@@ -28,7 +28,7 @@ export default function Home() {
   // handling the form
   const submitForm = async () => {
     setLoading(true);
-    if (loading) return;
+    if (loading || productName.trim() == "") return;
     // clear the previous results if..
     setAliExpressResults([]);
     setEbayResults([]);
@@ -129,6 +129,7 @@ export default function Home() {
             type="text"
             placeholder="product name ... "
             className="w-full outline-none  px-4 py-2 placeholder:text-black/50"
+            onKeyDown={(e) => e.key === "Enter" && submitForm()}
             value={productName}
             onChange={(e) => setProductName(e.target.value)}
           />
