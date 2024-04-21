@@ -59,7 +59,7 @@ export default function Home() {
     setLoading(false);
   };
 
-  // calculate the average price of amazon results
+  // calculate the average price of aliExpress results
   useEffect(() => {
     let newArray = [...AliExpressResults];
     if (newArray.length == 0) return;
@@ -150,7 +150,7 @@ export default function Home() {
           {tabs.map((tab) => (
             <span
               onClick={() => setActivePlatformTab(tab.name)}
-              key={tab.key}
+              key={tab.id}
               className={`cursor-pointer p-2 w-[30%] text-center rounded-sm
                smooth ${
                  tab.name == activePlatformTab
@@ -171,27 +171,31 @@ export default function Home() {
         max-h-[100vh] overflow-y-scroll bg-white text-black 
         font-medium py-10 px-6 border border-black/10 "
           >
-            {AliExpressResults.filter((item) => item !== null).map((item) => (
-              <div
-                key={item.title + item.price}
-                className="border-b border-black/20 py-10 "
-              >
-                <img
-                  src={"https://via.placeholder.com/400"}
-                  className="h-[300px] w-[300px] object-fit object-center 
-                  mb-4 rounded-xl border border-black/10"
-                  alt={item.title + "-image"}
-                />
-                <p className="text-black/80 w-[80%]">{item.title}</p>
-                <p className="font-bold text-xl">${item.price}</p>
-                <a
-                  href={item.url}
-                  className="cursor-pointer smooth opacity-70 hover:opacity-100"
+            {AliExpressResults.filter((item) => item !== null).map(
+              (item, i) => (
+                <div
+                  key={item.title + item.price + i}
+                  className="border-b border-black/20 py-10 "
                 >
-                  check product →
-                </a>
-              </div>
-            ))}
+                  <img
+                    src={item.imageSrc}
+                    className="h-[300px] w-[300px] object-fit object-center 
+                  mb-4 rounded-xl border border-black/10"
+                    alt={item.title + "-image"}
+                    crossOrigin="anonymous"
+                  />
+                  <p className="text-black/80 w-[80%]">{item.title}</p>
+                  <p className="font-bold text-xl">${item.price}</p>
+                  <a
+                    target="_blank"
+                    href={item.url}
+                    className="cursor-pointer smooth opacity-70 hover:opacity-100"
+                  >
+                    check product →
+                  </a>
+                </div>
+              )
+            )}
           </div>
           <div className="col-span-1 h-full items-center justify-center flex">
             <h1 className="text-2xl text-center">
@@ -222,6 +226,7 @@ export default function Home() {
                 <p className="font-bold text-xl">${item.price}</p>
                 <a
                   href={item.url}
+                  target="_blank"
                   className="cursor-pointer smooth opacity-70 hover:opacity-100"
                 >
                   check product →

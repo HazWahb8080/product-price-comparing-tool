@@ -32,8 +32,8 @@ export async function POST(request) {
     return userAgents[randomUAIndex];
   };
   try {
-    // const browser = await puppeteer.launch({ headless: false });
-    const browser = await puppeteer.connect({ browserWSEndpoint });
+    const browser = await puppeteer.launch({ headless: false });
+    // const browser = await puppeteer.connect({ browserWSEndpoint });
     const page = await browser.newPage();
     // Custom user agent
     const customUA = generateRandomUA();
@@ -59,6 +59,11 @@ export async function POST(request) {
           const priceElement = item.querySelector(
             ".multi--price-sale--U-S0jtj"
           );
+          let imageSrc;
+          const image = item.querySelector("img");
+          if (image) {
+            imageSrc = image.src;
+          }
           let price = "";
           if (priceElement) {
             const priceText = priceElement.textContent.trim();
@@ -68,11 +73,12 @@ export async function POST(request) {
           const url = item.querySelector(
             ".search-item-card-wrapper-gallery a"
           ).href;
-          return { title, price, url };
+          return { title, price, url, imageSrc };
         });
     });
 
     await browser.close();
+    console.log(searchResults);
     return Response.json(searchResults);
   } catch (error) {
     return Response.json(error.message);
