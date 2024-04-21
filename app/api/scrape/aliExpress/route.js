@@ -32,8 +32,8 @@ export async function POST(request) {
     return userAgents[randomUAIndex];
   };
   try {
-    const browser = await puppeteer.launch({ headless: false });
-    // const browser = await puppeteer.connect({ browserWSEndpoint });
+    // const browser = await puppeteer.launch({ headless: false });
+    const browser = await puppeteer.connect({ browserWSEndpoint });
     const page = await browser.newPage();
     // Custom user agent
     const customUA = generateRandomUA();
