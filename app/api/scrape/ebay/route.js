@@ -8,11 +8,15 @@ export const maxDuration = 40;
 
 export async function POST(request) {
   const { productName } = await request.json();
+  const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
   const browserWSEndpoint = `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`;
-
+  const getBrowser = async () =>
+    IS_PRODUCTION
+      ? puppeteer.connect({ browserWSEndpoint })
+      : puppeteer.launch();
   try {
-    const browser = await puppeteer.connect({ browserWSEndpoint });
+    const browser = await getBrowser();
     const page = await browser.newPage();
     await page.goto("https://www.ebay.com/");
     await page.waitForSelector("#gh-ac");
