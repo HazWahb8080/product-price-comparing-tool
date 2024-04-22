@@ -178,6 +178,7 @@ export default function Home() {
                   className="border-b border-black/20 py-10 "
                 >
                   <img
+                    // AliExpress Images Links blocked on http but works in production
                     src={item.imageSrc}
                     className="h-[300px] w-[300px] object-fit object-center 
                   mb-4 rounded-xl border border-black/10"
